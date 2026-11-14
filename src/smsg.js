@@ -1,5 +1,8 @@
 // AunuMD • serializer pesan: mengubah WAMessage mentah menjadi objek m yang nyaman untuk plugin.
 import { downloadMediaMessage, getContentType } from '@aunucore/baileys';
+import config from '../config.js';
+import { getSetting } from './database.js';
+import { sendRichText } from './rich.js';
 
 function unwrap(content) {
   // Buka bungkus ephemeral / view-once agar tipe isi sebenarnya yang terbaca.
@@ -79,7 +82,8 @@ export function smsg(sock, raw, logger) {
     m.quoted = null;
   }
 
-  m.reply = (text, opts = {}) => sock.sendMessage(m.chat, { text: String(text) }, { quoted: raw, ...opts });
+  // SEMUA balasan teks bot berangkat sebagai rich response (fallback teks polos di dalam sendRichText).
+  m.reply = (text) => sendRichText(sock, m.chat, text, { quoted: raw, title: getSetting('botName', config.botName) });
   m.react = (emoji) => sock.sendMessage(m.chat, { react: { text: emoji, key: raw.key } });
   return m;
 }

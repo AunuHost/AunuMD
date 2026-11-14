@@ -20,5 +20,7 @@ export default {
 
   // Tampilan: URL gambar untuk header kartu menu & dekoy trapimage (opsional).
   thumbnail: '',
-  web: 'https://ai.aunuhost.bond'
+  web: 'https://ai.aunuhost.bond',
+  repo: 'https://github.com/AunuHost/AunuMD',
+  donate: 'https://sociabuzz.com/aunucore/tribe'
 };

@@ -1,4 +1,5 @@
 // AunuMD • Broadcast pesan ke semua grup
+import { sendRichText } from '../../src/rich.js';
 export const config = {
   name: 'broadcast',
   alias: ['bc'],
@@ -17,7 +18,7 @@ export default async function (m, ctx) {
     let terkirim = 0;
     for (const jid of jids) {
       try {
-        await sock.sendMessage(jid, { text });
+        await sendRichText(sock, jid, text, { title: ctx.config.botName });
         terkirim++;
       } catch {}
       await new Promise((r) => setTimeout(r, 500));

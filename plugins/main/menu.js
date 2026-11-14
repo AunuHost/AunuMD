@@ -19,9 +19,12 @@ export const POWERED_LINE = `⚡ Powered by @aunucore/baileys v${LIB_VERSION} �
 
 const CATEGORY_LABELS = {
   main: '🏠 Utama', aunu: '✨ AunuBaileys Experimental', group: '👥 Grup',
-  owner: '👑 Owner', tools: '🧰 Tools', newsletter: '📰 Newsletter', scrape: '🌐 Scraper'
+  owner: '👑 Owner', tools: '🧰 Tools', newsletter: '📰 Newsletter', scrape: '🌐 Scraper',
+  fun: '🎭 Fun', game: '🎮 Game', rpg: '🗺️ RPG', cek: '🔍 Cek & Ramalan',
+  islamic: '🕌 Islami', random: '🎲 Random', info: 'ℹ️ Info',
+  sticker: '🎨 Sticker & Maker', canvas: '🖼️ Canvas'
 };
-const CATEGORY_ORDER = ['main', 'aunu', 'group', 'tools', 'newsletter', 'scrape', 'owner'];
+const CATEGORY_ORDER = ['main', 'aunu', 'sticker', 'canvas', 'fun', 'game', 'rpg', 'group', 'tools', 'cek', 'islamic', 'random', 'newsletter', 'scrape', 'info', 'owner'];
 
 export function buildMenuText(m, ctx, { full = false } = {}) {
   const { categories } = ctx.listPlugins();

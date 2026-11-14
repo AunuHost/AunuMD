@@ -1,4 +1,5 @@
 // AunuMD • Menyisipkan watermark tak terlihat ke dalam teks
+import { sendRichText } from '../../src/rich.js';
 export const config = {
   name: 'watermark',
   alias: ['wm'],
@@ -18,7 +19,7 @@ export default async function (m, ctx) {
   const tag = bagian[1] || botCfg.botName;
   try {
     const hasil = sock.aunuWatermark(teks, tag);
-    await sock.sendMessage(m.chat, { text: hasil }, m.raw ? { quoted: m.raw } : {});
+    await sendRichText(sock, m.chat, hasil, { quoted: m.raw, title: botCfg.botName });
   } catch (e) {
     reply('Error: ' + e.message);
   }

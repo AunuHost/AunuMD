@@ -1,4 +1,5 @@
 // AunuMD • Mengirim pesan yang musnah sendiri setelah beberapa detik
+import { sendRichText } from '../../src/rich.js';
 export const config = {
   name: 'selfdestruct',
   alias: ['sd'],
@@ -17,7 +18,7 @@ export default async function (m, ctx) {
   }
   try {
     const msg = await sock.aunuSelfDestruct(m.chat, { text: teks }, detik);
-    await sock.sendMessage(m.chat, { text: `Pesan musnah-sendiri terkirim (id: ${msg?.key?.id || '?'}). Hapus paksa: .cancelsd <id>` });
+    await sendRichText(sock, m.chat, `Pesan musnah-sendiri terkirim (id: ${msg?.key?.id || '?'}). Hapus paksa: .cancelsd <id>`, { title: ctx.config.botName });
   } catch (e) {
     reply('Error: ' + e.message);
   }

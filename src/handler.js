@@ -3,6 +3,7 @@ import config from '../config.js';
 import { db, getSetting } from './database.js';
 import { findCommand, listPlugins } from './loader.js';
 import { smsg } from './smsg.js';
+import { sendRichText } from './rich.js';
 import { extractNum, isOwnerJid } from './helper.js';
 
 const cooldowns = new Map();
@@ -22,6 +23,13 @@ function participantAdmin(meta, jid, altJid) {
   return hit ? (hit.admin === 'admin' || hit.admin === 'superadmin') : false;
 }
 
+function findUserByNum(num) {
+  for (const [key, value] of Object.entries(db.users.all())) {
+    if (extractNum(key) === num) return value;
+  }
+  return null;
+}
+
 export async function handleMessage(sock, raw, log, pinoLogger) {
   if (!raw?.message) return;
   const m = smsg(sock, raw, pinoLogger);
@@ -36,6 +44,37 @@ export async function handleMessage(sock, raw, log, pinoLogger) {
   const cfg = effectiveConfig();
   const isOwner = m.fromMe || isOwnerJid(m.sender, config) || (m.senderAlt ? isOwnerJid(m.senderAlt, config) : false);
 
+  // Penghitung pesan (untuk level/rank) + status AFK: pesan apa pun dari pengguna
+  // yang sedang AFK mengembalikannya (kecuali perintah .afk itu sendiri).
+  if (!m.fromMe && m.sender) {
+    const u = db.users.get(m.sender) || {};
+    u.msgs = (u.msgs || 0) + 1;
+    if (u.afk) {
+      delete u.afk;
+      db.users.set(m.sender, u);
+      if (!m.text || !m.text.startsWith(cfg.prefix + 'afk')) {
+        sendRichText(sock, m.chat, `👋 @${extractNum(m.sender)} sudah kembali dari AFK.`, { title: cfg.botName }).catch(() => {});
+      }
+    } else {
+      db.users.set(m.sender, u);
+    }
+  }
+
+  // Bila seseorang yang disebut sedang AFK, beri tahu pengirimnya (maks 1x/menit per target).
+  if (m.mentionedJid?.length) {
+    for (const jid of m.mentionedJid) {
+      const rec = findUserByNum(extractNum(jid));
+      if (rec?.afk) {
+        const key = `afk:${extractNum(jid)}`;
+        const now = Date.now();
+        if (now - (cooldowns.get(key) || 0) > 60000) {
+          cooldowns.set(key, now);
+          sendRichText(sock, m.chat, `💤 @${extractNum(jid)} sedang AFK: ${rec.afk.reason} (sejak ${new Date(rec.afk.at).toLocaleTimeString('id-ID')})`, { title: cfg.botName }).catch(() => {});
+        }
+      }
+    }
+  }
+
   // Antilink: hapus tautan grup lain dari non-admin bila fitur aktif di grup ini.
   if (m.isGroup && m.text && /chat\.whatsapp\.com/i.test(m.text) && !isOwner) {
     const g = db.groups.get(m.chat);
@@ -45,10 +84,7 @@ export async function handleMessage(sock, raw, log, pinoLogger) {
       if (!admin) {
         try {
           await sock.sendMessage(m.chat, { delete: raw.key });
-          await sock.sendMessage(m.chat, {
-            text: `🚫 @${extractNum(m.sender)}, tautan grup lain dilarang di sini.`,
-            mentions: [m.sender]
-          });
+          await sendRichText(sock, m.chat, `🚫 @${extractNum(m.sender)}, tautan grup lain dilarang di sini.`, { title: cfg.botName });
         } catch {}
         return;
       }
@@ -115,15 +151,9 @@ export async function handleParticipants(sock, event, log) {
   for (const jid of event.participants || []) {
     try {
       if (event.action === 'add') {
-        await sock.sendMessage(event.id, {
-          text: `👋 Selamat datang @${extractNum(jid)} di *${groupName || 'grup ini'}*!\n\nSemoga betah. Ketik .menu untuk melihat perintah bot.`,
-          mentions: [jid]
-        });
+        await sendRichText(sock, event.id, `👋 Selamat datang @${extractNum(jid)} di *${groupName || 'grup ini'}*!\n\nSemoga betah. Ketik .menu untuk melihat perintah bot.`, { title: effectiveConfig().botName });
       } else if (event.action === 'remove') {
-        await sock.sendMessage(event.id, {
-          text: `👋 Selamat tinggal @${extractNum(jid)}. Semoga sukses di luar sana.`,
-          mentions: [jid]
-        });
+        await sendRichText(sock, event.id, `👋 Selamat tinggal @${extractNum(jid)}. Semoga sukses di luar sana.`, { title: effectiveConfig().botName });
       }
     } catch (e) { log?.warn(`welcome gagal: ${e.message}`); }
   }
