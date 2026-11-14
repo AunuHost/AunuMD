@@ -92,7 +92,7 @@ Saat run pertama bot menanyakan nomor bot, lalu menampilkan **kode pairing
 custom `AUNUHOST`**. Hubungkan dari WhatsApp di HP bot: *Setelan > Perangkat
 tertataut > Tautkan dengan nomor telepon*, masukkan kode itu.
 
-### Panel (Pterodactyl/Hidencloud) — sudah tahan banting
+### Panel (Pterodactyl) — sudah tahan banting
 
 Paket ini membawa `.npmrc` (`legacy-peer-deps`) dan **libsignal yang
 di-vendor** (`vendor/libsignal-node`, diarahkan lewat `overrides`), sehingga
