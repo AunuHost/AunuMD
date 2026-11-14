@@ -1,0 +1,33 @@
+// AunuMD • Kartu foto interaktif dengan tombol Suka / Tidak Suka
+export const config = {
+  name: 'card',
+  alias: ['kartu'],
+  category: 'aunu',
+  description: 'Mengirim kartu foto interaktif (foto header menyatu dengan teks + tombol 👍/👎)',
+  usage: '.card <teks>',
+  isOwner: false, isGroup: false, isPrivate: false,
+  cooldown: 5
+};
+export default async function (m, ctx) {
+  const { sock, text, reply } = ctx;
+  const botCfg = ctx.config;
+  if (!text) return reply(`Pemakaian: ${config.usage}`);
+  try {
+    let image;
+    if (m.quoted && typeof m.quoted.type === 'string' && m.quoted.type.includes('image')) {
+      image = (await m.quoted.download().catch(() => null)) || undefined;
+    }
+    if (!image && typeof botCfg.thumbnail === 'string' && botCfg.thumbnail.startsWith('http')) {
+      image = { url: botCfg.thumbnail };
+    }
+    await sock.aunuCard(m.chat, {
+      title: botCfg.botName,
+      text,
+      footer: 'AunuMD • @aunucore/baileys',
+      image,
+      likeDislike: true
+    });
+  } catch (e) {
+    reply('Error: ' + e.message);
+  }
+}
