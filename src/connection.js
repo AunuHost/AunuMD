@@ -68,8 +68,12 @@ export async function startConnection(log) {
       log.success(`Kode pairing untuk ${number}: ${code}`);
       log.info('Hubungkan lewat WhatsApp di HP bot: Setelan > Perangkat tertaut > Tautkan dengan nomor telepon.');
     } catch (e) {
-      pairingRequested = false; // boleh dicoba lagi pada qr berikutnya / restart
-      log.error(`Pairing gagal: ${e.message} — bot tetap hidup; perbaiki penyebabnya lalu restart untuk mencoba lagi.`);
+      // SENGAJA tidak di-reset: pairingRequested tetap terkunci untuk socket ini.
+      // Mencoba ulang otomatis pada qr berikutnya = spam companion_hello —
+      // terbukti 25 Nov 2026: tiga percobaan dalam ±6 menit menaikkan penolakan
+      // server dari bad-request menjadi rate-overlimit. Satu proses = satu percobaan;
+      // mencoba lagi WAJIB lewat restart manual setelah jeda cooldown.
+      log.error(`Pairing gagal: ${e.message} — bot tetap hidup dan TIDAK mencoba ulang otomatis. Tunggu cooldown server (rate-overlimit bisa berjam-jam), lalu restart untuk satu percobaan baru.`);
     }
   };
 
