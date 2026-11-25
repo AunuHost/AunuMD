@@ -48,7 +48,9 @@ export async function startConnection(log) {
       keys: makeCacheableSignalKeyStore(state.keys, pinoLogger)
     },
     logger: pinoLogger,
-    browser: ['AunuMD', 'Chrome', '1.0.0'],
+    // Browser SENGAJA tidak di-set: pakai bawaan library (Browsers.macOS('Chrome')).
+    // Tuple kustom ['AunuMD','Chrome','1.0.0'] dicabut 25 Nov 2026 — menghilangkan
+    // satu variabel dari diagnosis penolakan companion_hello (bad-request).
     printQRInTerminal: false,
     markOnlineOnConnect: false,
     syncFullHistory: false
