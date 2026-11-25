@@ -3,11 +3,13 @@
 **AunuMD** adalah bot WhatsApp Multi-Device yang dibangun dari nol di atas
 [**@aunucore/baileys**](https://www.npmjs.com/package/@aunucore/baileys) (AunuBaileys) —
 library WhatsApp Web self-healing dari **AunuCore Creative Network**.
+Sejak rilis ini AunuMD berjalan di **@aunucore/baileys 2.7.0** (basis v7).
 
-**249 perintah dalam 16 kategori** — ukuran bot MD penuh: seluruh 33 metode
-eksperimental AunuBaileys, keluarga sticker/maker (brat, qc, smeme, swm, cari
-stiker), canvas prosedural, game ber-sesi dengan ekonomi saldo, RPG, primbon &
-cek, perangkat Islami, tools konversi/ffmpeg, sampai scraper tanpa kunci API.
+**251 perintah dalam 16 kategori** — ukuran bot MD penuh: metode
+eksperimental AunuBaileys sebagai perintah, keluarga sticker/maker (brat, qc,
+smeme, swm, cari stiker, **stiker bersuara**), canvas prosedural, game ber-sesi
+dengan ekonomi saldo, RPG, primbon & cek, perangkat Islami, tools
+konversi/ffmpeg, sampai scraper tanpa kunci API.
 
 Menu utama dikirim sebagai kartu rich interaktif, daftar lengkap sebagai rich
 response HTML, dan info bot sebagai pesan langkah (BotSteps).
@@ -26,11 +28,11 @@ menu setelah kartu rich gagal.
 ### 🏠 Utama (5)
 `.allmenu` • `.botinfo` • `.menu` • `.owner` • `.ping`
 
-### ✨ AunuBaileys Experimental (33)
-`.botsteps` • `.cancelschedule` • `.cancelsd` • `.card` • `.doctor` • `.fakealbum` • `.fakedoc` • `.fakeforward` • `.fakelocation` • `.fakequote` • `.fakevideo` • `.fakevn` • `.ghostmention` • `.ghostmsg` • `.groupstatus` • `.humansend` • `.listschedule` • `.personalcard` • `.personaltagall` • `.poststatus` • `.promocode` • `.reactseq` • `.readwm` • `.schedule` • `.selfdestruct` • `.sidetext` • `.spoiler` • `.stripwm` • `.trapimage` • `.typewriter` • `.vanish` • `.watermark` • `.wordreact`
+### ✨ AunuBaileys Experimental (34)
+`.botsteps` • `.cancelschedule` • `.cancelsd` • `.card` • `.doctor` • `.emojisticker` • `.fakealbum` • `.fakedoc` • `.fakeforward` • `.fakelocation` • `.fakequote` • `.fakevideo` • `.fakevn` • `.ghostmention` • `.ghostmsg` • `.groupstatus` • `.humansend` • `.listschedule` • `.personalcard` • `.personaltagall` • `.poststatus` • `.promocode` • `.reactseq` • `.readwm` • `.schedule` • `.selfdestruct` • `.sidetext` • `.spoiler` • `.stripwm` • `.trapimage` • `.typewriter` • `.vanish` • `.watermark` • `.wordreact`
 
-### 🎨 Sticker & Maker (17)
-`.attp` • `.brat` • `.bratextra` • `.bratgojo` • `.bratgojovid` • `.bratgreen` • `.bratvermeil` • `.bratvermeilvid` • `.bratvid` • `.caristiker` • `.emojimix` • `.pinpack` • `.qc` • `.smeme` • `.smemevid` • `.swm` • `.ttp`
+### 🎨 Sticker & Maker (18)
+`.astc` • `.attp` • `.brat` • `.bratextra` • `.bratgojo` • `.bratgojovid` • `.bratgreen` • `.bratvermeil` • `.bratvermeilvid` • `.bratvid` • `.caristiker` • `.emojimix` • `.pinpack` • `.qc` • `.smeme` • `.smemevid` • `.swm` • `.ttp`
 
 ### 🖼️ Canvas (20)
 `.applemusic` • `.buatquotes` • `.facepalm` • `.fakedev7` • `.fakestory` • `.fakestory2` • `.fakestory3` • `.fakestory4` • `.igstory` • `.igstoryimg` • `.iqc` • `.iqc2` • `.iqcpink` • `.kalender` • `.musiccard` • `.nulis` • `.quotemaker` • `.sroast` • `.topixel` • `.ttqc`
@@ -76,6 +78,17 @@ lewat `.allmenu` dan `.totalfitur`.
 
 ## Catatan fitur
 
+- **`.astc` — stiker bersuara (audio sticker).** Reply gambar/video/stiker
+  dengan `.astc <judul lagu>`: musiknya dicari dari YouTube (Invidious),
+  dipotong maks 30 detik, dikonversi ke OGG/Opus, lalu ditempel ke stiker
+  memakai `sendSoundSticker` AunuBaileys 2.7.0 — stiker membawa audio
+  nested (StickerMessage field 26) yang dipasangkan lewat EXIF
+  `sound-sha256`.
+- **Metode eksperimental:** 34 dari 35 metode `aunu*` 2.7.0 tersedia sebagai
+  perintah (termasuk `.emojisticker`); satu yang belum dibungkus perintah
+  adalah `aunuSendA2UI` (widget deklaratif — menunggu keputusan sintaks
+  perintahnya). Di luar keluarga `aunu*`, `.astc` memakai
+  `sendSoundSticker` dari permukaan reguler library.
 - **`.yts2`** — pencarian YouTube dengan unduhan per video lewat `.ytdl2
   <id> mp4|mp3`. Tampilan kartu geser (carousel) sengaja TIDAK dirakit di sisi
   bot: atas keputusan pemilik, fitur itu diminta masuk sebagai metode resmi
@@ -86,9 +99,7 @@ lewat `.allmenu` dan `.totalfitur`.
   bergantung pada API ber-kunci pihak ketiga diimplementasikan ulang secara
   lokal (canvas/ffmpeg) atau lewat API terbuka tanpa kunci yang terverifikasi
   hidup; 42 perintah gugur (spam NGL, palsu bukti pembayaran, endpoint mati,
-  atau kunci pihak ketiga) dan tidak dipasang sebagai fitur mati. Satu-satunya
-  pengecualian yang gugur di tengah jalan: `videotranscribe` (endpoint
-  berubah bentuk) — dicabut.
+  atau kunci pihak ketiga) dan tidak dipasang sebagai fitur mati.
 - Perintah `.anime`/`.manga` memakai API resmi Jikan v4; dari sebagian
   jaringan API itu bisa tak terjangkau dan bot membalas error secara jujur.
 
@@ -109,11 +120,11 @@ tertataut > Tautkan dengan nomor telepon*, masukkan kode itu.
 
 ### Panel (Pterodactyl/Hidencloud) — sudah tahan banting
 
-Paket ini membawa `.npmrc` (`legacy-peer-deps`) dan **libsignal yang
-di-vendor** (`vendor/libsignal-node`, diarahkan lewat `overrides`), sehingga
-install di panel yang melarang *git fetch* (EALLOWGIT) dan konflik peer
-jimp (ERESOLVE) tetap berjalan. Cukup ekstrak, atur startup command
-`node index.js`, start.
+Paket ini membawa `.npmrc` (`legacy-peer-deps`) sehingga konflik peer
+tidak menggagalkan install di panel. Sejak @aunucore/baileys 2.x, libsignal
+diambil dari npm seperti dependensi biasa (bukan lagi fetch git), jadi
+keringanan panel EALLOWGIT tidak memerlukan vendoring apa pun. Cukup ekstrak,
+atur startup command `node index.js`, start.
 
 ## Konfigurasi
 
@@ -147,7 +158,6 @@ AunuMD/
 │   ├── main/ aunu/ sticker/ canvas/ fun/ game/ rpg/ group/
 │   ├── tools/ cek/ islamic/ random/ newsletter/ scrape/ info/ owner/
 ├── assets/fonts/       # Poppins, Inter, Caveat, Plus Jakarta Sans (canvas)
-├── vendor/libsignal-node/   # libsignal 6.0.0 ter-vendor (anti EALLOWGIT)
 └── database/           # data runtime (JSON, tidak ikut git)
 ```
 
