@@ -1,5 +1,8 @@
 // AunuMD • koneksi WhatsApp: satu socket aktif, handler terdaftar sekali per socket,
 // socket lama diakhiri sebelum reconnect (anti kebocoran listener).
+// Pairing TIDAK PERNAH boleh membunuh proses: semua handler didaftarkan dulu,
+// permintaan kode pairing dipicu oleh event qr (alur kanonis) di dalam try/catch —
+// penolakan server (mis. bad-request) hanya tercatat di log, bot tetap hidup.
 import {
   makeWASocket,
   useMultiFileAuthState,
@@ -11,7 +14,6 @@ import pino from 'pino';
 import readline from 'node:readline/promises';
 import config from '../config.js';
 import { handleMessage, handleParticipants, effectiveConfig } from './handler.js';
-import { sleep } from './helper.js';
 
 const pinoLogger = pino({ level: 'silent' });
 let activeSock = null;
@@ -37,6 +39,7 @@ export async function startConnection(log) {
   const { state, saveCreds } = await useMultiFileAuthState(config.sessionName);
   let version;
   try { ({ version } = await fetchLatestBaileysVersion()); } catch { version = undefined; }
+  log.info(version ? `Versi WA dari server: ${version.join('.')}` : 'Versi WA: fetch gagal — memakai versi bawaan library (cek koneksi ke raw.githubusercontent.com).');
 
   const sock = makeWASocket({
     ...(version ? { version } : {}),
@@ -52,18 +55,27 @@ export async function startConnection(log) {
   });
   activeSock = sock;
 
-  if (!state.creds.registered) {
-    const number = (config.botNumber || '').replace(/\D/g, '') || await askNumber();
-    await sleep(1500);
-    const code = await sock.requestPairingCode(number, config.pairingCode);
-    log.success(`Kode pairing untuk ${number}: ${code}`);
-    log.info('Hubungkan lewat WhatsApp di HP bot: Setelan > Perangkat tertaut > Tautkan dengan nomor telepon.');
-  }
+  // --- Pairing: dipicu event qr, sekali per socket, kegagalan tidak fatal ---
+  let pairingRequested = false;
+  const tryPairing = async () => {
+    if (pairingRequested || state.creds.registered) return;
+    pairingRequested = true;
+    try {
+      const number = (config.botNumber || '').replace(/\D/g, '') || await askNumber();
+      const code = await sock.requestPairingCode(number, config.pairingCode);
+      log.success(`Kode pairing untuk ${number}: ${code}`);
+      log.info('Hubungkan lewat WhatsApp di HP bot: Setelan > Perangkat tertaut > Tautkan dengan nomor telepon.');
+    } catch (e) {
+      pairingRequested = false; // boleh dicoba lagi pada qr berikutnya / restart
+      log.error(`Pairing gagal: ${e.message} — bot tetap hidup; perbaiki penyebabnya lalu restart untuk mencoba lagi.`);
+    }
+  };
 
   sock.ev.on('creds.update', saveCreds);
 
   sock.ev.on('connection.update', (update) => {
-    const { connection, lastDisconnect } = update;
+    const { connection, lastDisconnect, qr } = update;
+    if (qr && !state.creds.registered) tryPairing();
     if (connection === 'open') {
       log.success(`Terhubung sebagai ${sock.user?.id || ''} — ${effectiveConfig().botName} siap.`);
     } else if (connection === 'close') {
@@ -96,6 +108,12 @@ export async function startConnection(log) {
       log.warn(`Decrypt failure [${info?.errorClass || 'unknown'}] dari ${info?.remoteJid || info?.key?.remoteJid || '?'}`);
     } catch {}
   });
+
+  // Cadangan: bila event qr tak kunjung tiba dalam 25 detik, coba pairing sekali
+  // (requestPairingCode sendiri menunggu handshake selesai; tetap di dalam try/catch).
+  if (!state.creds.registered) {
+    setTimeout(() => { if (myGen === generation && !state.creds.registered) tryPairing(); }, 25000);
+  }
 
   return sock;
 }
