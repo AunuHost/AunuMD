@@ -1,4 +1,5 @@
 // AunuMD • Kartu foto interaktif dengan tombol Suka / Tidak Suka
+import { sendCard } from '../../src/card.js';
 export const config = {
   name: 'card',
   alias: ['kartu'],
@@ -20,7 +21,7 @@ export default async function (m, ctx) {
     if (!image && typeof botCfg.thumbnail === 'string' && botCfg.thumbnail.startsWith('http')) {
       image = { url: botCfg.thumbnail };
     }
-    await sock.aunuCard(m.chat, {
+    await sendCard(sock, m.chat, {
       title: botCfg.botName,
       text,
       footer: 'AunuMD • @aunucore/baileys',

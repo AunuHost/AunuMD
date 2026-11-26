@@ -1,5 +1,6 @@
 // AunuMD • menu utama rich: kartu interaktif AunuCard + fallback teks. Selalu mencantumkan library yang dipakai.
 import { createRequire } from 'node:module';
+import { sendCard } from '../../src/card.js';
 
 const require = createRequire(import.meta.url);
 let LIB_VERSION = 'unknown';
@@ -57,7 +58,7 @@ export default async function (m, ctx) {
       image = await m.quoted.download().catch(() => null) || undefined;
     }
     if (!image && ctx.config.thumbnail) image = { url: ctx.config.thumbnail };
-    await ctx.sock.aunuCard(m.chat, {
+    await sendCard(ctx.sock, m.chat, {
       title: ctx.config.botName,
       subtitle: 'WhatsApp Multi-Device Bot',
       text,
