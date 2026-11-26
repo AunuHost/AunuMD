@@ -57,6 +57,31 @@ export async function startConnection(log) {
   });
   activeSock = sock;
 
+  // --- Debug jalur kirim (config.debug): bungkus sendMessage + dengarkan echo ---
+  // Murni logging defensif (try/catch) — tidak mengubah perilaku kirim sama sekali.
+  // Membedakan "resolve tapi di-drop server" (tak ada echo) vs "sampai" (ada echo),
+  // dan menunjukkan kunci isi hasil akhir proto yang dikembalikan library.
+  if (config.debug) {
+    const origSend = sock.sendMessage.bind(sock);
+    sock.sendMessage = async (jid, content, options) => {
+      const result = await origSend(jid, content, options);
+      try {
+        log.info(`[debug][send] jid=${jid} keys=[${Object.keys(content || {}).join(',')}] -> id=${result?.key?.id || '?'} status=${result?.status ?? '?'} hasil=[${Object.keys(result?.message || {}).join(',')}]`);
+      } catch {}
+      return result;
+    };
+    sock.ev.on('messages.upsert', ({ messages, type }) => {
+      try {
+        for (const mm of messages || []) {
+          if (mm?.key?.fromMe) {
+            log.info(`[debug][upsert] type=${type} id=${mm.key.id || '?'} keys=[${Object.keys(mm.message || {}).join(',')}]`);
+          }
+        }
+      } catch {}
+    });
+    log.info('[debug] Mode debug jalur kirim AKTIF.');
+  }
+
   // --- Pairing: dipicu event qr, sekali per socket, kegagalan tidak fatal ---
   let pairingRequested = false;
   const tryPairing = async () => {

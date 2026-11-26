@@ -17,6 +17,7 @@ export default {
   // Perilaku
   prefix: '.',
   mode: 'public', // 'public' = semua orang bisa memakai | 'self' = hanya owner
+  debug: false, // true = log diagnostik jalur kirim (send + echo upsert) ke konsol
 
   // Tampilan: URL gambar untuk header kartu menu & dekoy trapimage (opsional).
   thumbnail: '',
