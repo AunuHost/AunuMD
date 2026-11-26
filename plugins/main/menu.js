@@ -57,7 +57,7 @@ export default async function (m, ctx) {
     if (m.quoted && String(m.quoted.type).includes('image')) {
       image = await m.quoted.download().catch(() => null) || undefined;
     }
-    if (!image && ctx.config.thumbnail) image = { url: ctx.config.thumbnail };
+    if (!image && ctx.config.thumbnail) image = ctx.config.thumbnail; // string: URL atau path lokal — diselesaikan+di-cache oleh sendCard
     await sendCard(ctx.sock, m.chat, {
       title: ctx.config.botName,
       subtitle: 'WhatsApp Multi-Device Bot',

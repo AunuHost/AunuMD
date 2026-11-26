@@ -18,8 +18,8 @@ export default async function (m, ctx) {
     if (m.quoted && typeof m.quoted.type === 'string' && m.quoted.type.includes('image')) {
       image = (await m.quoted.download().catch(() => null)) || undefined;
     }
-    if (!image && typeof botCfg.thumbnail === 'string' && botCfg.thumbnail.startsWith('http')) {
-      image = { url: botCfg.thumbnail };
+    if (!image && typeof botCfg.thumbnail === 'string' && botCfg.thumbnail) {
+      image = botCfg.thumbnail; // string: URL atau path lokal — diselesaikan+di-cache oleh sendCard
     }
     await sendCard(sock, m.chat, {
       title: botCfg.botName,

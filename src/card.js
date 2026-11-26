@@ -10,7 +10,49 @@
 // lalu me-relay-nya langsung. Semantik opsi meniru aunuCard (termasuk likeDislike)
 // supaya pemanggil tidak berubah bentuk. Cabut helper ini begitu library
 // memulihkan cabang interactive-nya.
+//
+// KECEPATAN (26 Nov 2026): gambar header dari URL eksternal pernah membuat .menu
+// baru muncul ±2 menit — unduhan CDN dari jaringan server lambat, dan kegagalannya
+// baru terjadi SETELAH unduh+unggah selesai dicoba. Karena itu di sini:
+//   • sumber gambar diselesaikan SEKALI lalu di-cache sebagai Buffer per proses,
+//   • seluruh persiapan gambar dibatasi timeout (bawaan 12 detik),
+//   • bila gambar gagal/lambat, kartu TETAP terkirim tanpa foto — tidak pernah
+//     menggantung dan tidak pernah menggagalkan kartu.
+import { readFile } from 'node:fs/promises';
 import { prepareWAMessageMedia, generateWAMessageFromContent } from '@aunucore/baileys';
+
+const ROOT = new URL('../', import.meta.url); // akar paket bot (src/ satu tingkat di bawah)
+const imageCache = new Map(); // kunci sumber -> Buffer
+
+// Selesaikan sumber gambar menjadi Buffer (atau null bila bentuknya diteruskan
+// apa adanya ke prepareWAMessageMedia, mis. { stream }).
+export async function resolveImage(input, timeoutMs = 12000) {
+  if (!input) return null;
+  if (Buffer.isBuffer(input) || input instanceof Uint8Array) return input;
+  const url = typeof input === 'string' ? input : (typeof input?.url === 'string' ? input.url : null);
+  if (!url) return null;
+  if (imageCache.has(url)) return imageCache.get(url);
+  let buf;
+  if (/^https?:\/\//i.test(url)) {
+    const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+    if (!res.ok) throw new Error(`unduh gambar gagal: HTTP ${res.status}`);
+    buf = Buffer.from(await res.arrayBuffer());
+  } else {
+    buf = await readFile(new URL(url.replace(/^\.?\//, ''), ROOT));
+  }
+  imageCache.set(url, buf);
+  return buf;
+}
+
+function withTimeout(promise, ms) {
+  const guarded = Promise.resolve(promise);
+  guarded.catch(() => {}); // telan penolakan susulan setelah timeout menang
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`persiapan gambar melewati ${ms}ms`)), ms);
+  });
+  return Promise.race([guarded, timeout]).finally(() => clearTimeout(timer));
+}
 
 // Pemetaan tombol — identik dengan mapCardButton di aunu-experimental library.
 function mapCardButton(b) {
@@ -38,8 +80,14 @@ function mapCardButton(b) {
 export async function sendCard(sock, jid, options = {}) {
   let imageMessage = options.imageMessage;
   if (!imageMessage && options.image) {
-    const prepared = await prepareWAMessageMedia({ image: options.image }, { upload: sock.waUploadToServer });
-    imageMessage = prepared.imageMessage;
+    const timeoutMs = options.imageTimeoutMs ?? 12000;
+    try {
+      imageMessage = await withTimeout((async () => {
+        const buf = await resolveImage(options.image, timeoutMs);
+        const prepared = await prepareWAMessageMedia({ image: buf ?? options.image }, { upload: sock.waUploadToServer });
+        return prepared.imageMessage;
+      })(), timeoutMs);
+    } catch { imageMessage = undefined; } // degradasi anggun: kartu tetap terkirim, tanpa foto
   }
   const buttons = (options.buttons || []).map(mapCardButton).filter(Boolean);
   if (options.likeDislike) {
@@ -63,4 +111,4 @@ export async function sendCard(sock, jid, options = {}) {
   return waMsg;
 }
 
-export default { sendCard };
+export default { sendCard, resolveImage };
