@@ -21,6 +21,12 @@
 import { readFile } from 'node:fs/promises';
 import { prepareWAMessageMedia, generateWAMessageFromContent } from '@aunucore/baileys';
 
+// MODE SEMENTARA (26 Nov 2026): kartu interaktif DINONAKTIFKAN dari pemanggil.
+// relayMessage InteractiveMessage di socket live 2.7.0 tidak pernah sampai dan
+// promise-nya diduga tidak settle (menu hening total, fallback tak terjangkau).
+// Menunggu hasil deepscan + perbaikan library (HB-500 dan lanjutannya).
+export const CARD_ENABLED = false;
+
 const ROOT = new URL('../', import.meta.url); // akar paket bot (src/ satu tingkat di bawah)
 const imageCache = new Map(); // kunci sumber -> Buffer
 

@@ -1,6 +1,6 @@
 // AunuMD • menu utama rich: kartu interaktif AunuCard + fallback teks. Selalu mencantumkan library yang dipakai.
 import { createRequire } from 'node:module';
-import { sendCard } from '../../src/card.js';
+import { sendCard, CARD_ENABLED } from '../../src/card.js';
 
 const require = createRequire(import.meta.url);
 let LIB_VERSION = 'unknown';
@@ -52,7 +52,8 @@ export function buildMenuText(m, ctx, { full = false } = {}) {
 export default async function (m, ctx) {
   const text = buildMenuText(m, ctx);
   // Jalur rich: kartu interaktif dengan foto header + tombol balas cepat.
-  try {
+  // (Nonaktif selama CARD_ENABLED false — langsung ke fallback teks di bawah.)
+  if (CARD_ENABLED) try {
     let image;
     if (m.quoted && String(m.quoted.type).includes('image')) {
       image = await m.quoted.download().catch(() => null) || undefined;

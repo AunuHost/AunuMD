@@ -1,5 +1,5 @@
 // AunuMD • Kartu foto interaktif dengan tombol Suka / Tidak Suka
-import { sendCard } from '../../src/card.js';
+import { sendCard, CARD_ENABLED } from '../../src/card.js';
 export const config = {
   name: 'card',
   alias: ['kartu'],
@@ -13,6 +13,7 @@ export default async function (m, ctx) {
   const { sock, text, reply } = ctx;
   const botCfg = ctx.config;
   if (!text) return reply(`Pemakaian: ${config.usage}`);
+  if (!CARD_ENABLED) return reply('ℹ️ Kartu interaktif sementara dinonaktifkan — jalur interaktif library sedang diperbaiki. Pakai .menu untuk daftar perintah.');
   try {
     let image;
     if (m.quoted && typeof m.quoted.type === 'string' && m.quoted.type.includes('image')) {
