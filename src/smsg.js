@@ -47,6 +47,20 @@ export function smsg(sock, raw, logger) {
   m.sender = m.isGroup ? (raw.key.participant || raw.participant || m.chat) : m.chat;
   m.senderAlt = (m.isGroup ? (raw.key.participantAlt || raw.participantAlt) : raw.key.remoteJidAlt) || null;
 
+  // Normalisasi alamat LID -> PN untuk chat pribadi. Pesan rich yang dikirim ke
+  // alamat @lid memang di-echo server ke perangkat pengirim (seolah terkirim),
+  // tetapi TIDAK PERNAH tampil di klien penerima — terbukti live 26 Nov 2026:
+  // richtest v2 mengirim 3 varian rich ke @lid, ketiganya echo=true, nol yang
+  // muncul; payload identik ke alamat PN tampil dan ter-render penuh (probe
+  // deepscan P2). Teks & reaksi kebal terhadap ini; yang peka hanya rich.
+  // Jadi selama PN alternatif diketahui, seluruh balasan memakai alamat PN.
+  m.chatLid = null;
+  if (!m.isGroup && m.chat.endsWith('@lid') && m.senderAlt) {
+    m.chatLid = m.chat;
+    m.chat = m.senderAlt;
+    m.sender = m.senderAlt;
+  }
+
   const { content, type, msg } = unwrap(raw.message || {});
   m.type = type || '';
   m.msg = msg;

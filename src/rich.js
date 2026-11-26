@@ -2,12 +2,14 @@
 // (layar HTML AunuBaileys). Bila jalur rich gagal, otomatis jatuh ke teks polos —
 // tidak ada balasan yang hilang hanya karena rich bermasalah.
 //
-// MODE SEMENTARA (26 Nov 2026): RICH_ENABLED = false. Terbukti live di 2.7.0:
-// kiriman { richHtml } tidak pernah sampai DAN promise-nya tidak pernah settle,
-// sehingga fallback teks di bawah ikut mati (pemanggil menggantung di await).
-// React sampai, teks polos murni sampai. Selama deepscan library berjalan,
-// semua balasan = teks polos. Nyalakan lagi begitu jalur rich library pulih.
-const RICH_ENABLED = false;
+// MODE NORMAL: RICH_ENABLED = true. Jalur rich terbukti sehat end-to-end
+// (probe deepscan P2 + screenshot penerima, 26 Nov 2026). Periode nonaktif
+// pagi 26 Nov ternyata salah alamat, bukan salah format: rich yang dikirim ke
+// alamat @lid di-echo server seolah terkirim tetapi tidak pernah tampil di
+// klien penerima (richtest v2: 3 varian echo=true, nol yang muncul), sedangkan
+// payload identik ke alamat PN tampil penuh. smsg kini menormalisasi chat
+// pribadi LID -> PN, jadi rich selalu berangkat ke alamat yang benar.
+const RICH_ENABLED = true;
 const MAX_RICH = 4000; // teks sangat panjang (mis. tag panjang) tetap teks polos
 
 // Konversi markdown gaya WhatsApp (*tebal*, _miring_, ~coret~, `kode`, ```blok```)
